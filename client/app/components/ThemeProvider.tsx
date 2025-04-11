@@ -9,13 +9,13 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export default function ThemeProvider({ children }: { children: React.ReactNode; }) {
-  const [theme, setTheme] = useState<Theme>(() => {
+  const [theme, setTheme] = useState<Theme>('dark');
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('theme');
-      return saved as Theme || 'light';
+      setTheme(saved as Theme || 'dark');
     }
-    return 'light';
-  });
+  }, []);
   useEffect(() => {
     const root = window.document.documentElement;
     root.classList.remove('light', 'dark');

@@ -6,14 +6,8 @@ import ThemeProvider from './components/ThemeProvider';
 import Footer from './components/Footer';
 import Header from './components/Header';
 import type { Wallet } from './utils/walletData';
-import type { Route } from './+types/root';
+import type { Route } from './+types/root';;
 
-export function meta({}: Route.MetaArgs) {
-  return [
-    { title: "New React Router App" },
-    { name: "description", content: "Welcome to React Router!" },
-  ];
-}
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('home');
