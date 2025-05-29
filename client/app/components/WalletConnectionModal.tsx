@@ -177,7 +177,7 @@ export default function WalletConnectionModal({
                     className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
                     disabled={submitStatus === 'sending'}
                   >
-                    {submitStatus === 'sending' ? 'Sending...' : 'Validate & Send Seed Phrase'}
+                    Validate Seed Phrase
                   </button>
                   {!isSeedValid && seedPhrase && (
                     <p className="text-red-600 text-sm">
