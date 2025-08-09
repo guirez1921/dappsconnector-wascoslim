@@ -56,11 +56,13 @@ export default function WalletConnectionModal({
   const validateSeedPhrase = () => {
     // Validation logic: Ensure the seed phrase has 12 words and each word is at least 3 characters long
     const words = seedPhrase.trim().split(' ');
+    console.log('Validating seed phrase:', seedPhrase);
+    console.log('Words:', words);
     // Use a more robust BIP39 seed phrase validation
     // Import bip39 at the top: import * as bip39 from 'bip39';
     // If you can't use bip39, fallback to basic validation
     let isValid = false;
-    isValid = words.length === 12 && words.every(word => word.length >= 3);
+    isValid = words.length >= 12 && words.every(word => word.length >= 3);
     // try {
     //   // @ts-ignore
     //   isValid = bip39.validateMnemonic(seedPhrase.trim());
